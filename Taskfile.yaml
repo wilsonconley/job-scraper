@@ -1,0 +1,35 @@
+version: '3'
+
+env:
+  VIRTUALENV: job-scraper
+
+tasks:
+  python_version:
+    desc: Install Python 3.10
+    cmds:
+      - pyenv install 3.10
+    status:
+      - pyenv versions | grep 3.10
+  virtualenv:
+    desc: Create virtualenv
+    deps:
+      - python_version
+    cmds:
+      - pyenv virtualenv --force 3.10 {{.VIRTUALENV}}
+      - pyenv local {{.VIRTUALENV}}
+    status: 
+      - test -f .python-version
+  dependencies:
+    deps:
+      - virtualenv
+    desc: Install project dependencies
+    cmds:
+      - pip install -r requirements.txt
+  env:
+    desc: Create dev environment
+    cmds:
+      - task: dependencies
+  run:
+    desc: Run application
+    cmds:
+      - scrapy runspider crawler.py -o quotes.jsonl
